@@ -101,9 +101,9 @@ export function AddExpense() {
 
   return (
     <>
-      <TopBar title={editing ? it.common.edit : it.add.title} back />
+      <TopBar title={editing ? it.common.edit : it.add.title} back help={editing ? undefined : '/aggiungi'} />
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-5">
-        <div className="card">
+        <div className="card" data-tip-target="add-amount">
           <label className="label" htmlFor="amt">
             {it.add.amountLabel}
           </label>
@@ -118,7 +118,7 @@ export function AddExpense() {
           />
         </div>
 
-        <div className="card">
+        <div className="card" data-tip-target="add-category">
           <p className="label">{it.add.categoryLabel}</p>
           <div className="grid grid-cols-3 gap-3 mt-2">
             {active.map((cat) => {
@@ -142,7 +142,7 @@ export function AddExpense() {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card" data-tip-target="add-date">
           <p className="label">{it.add.dateLabel}</p>
           <div className="grid grid-cols-3 gap-2 mt-2">
             {([

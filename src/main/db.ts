@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { existsSync, mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, copyFileSync, writeFileSync, renameSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
@@ -13,6 +13,7 @@ import type {
   ShoppingItem,
   ScheduledExpense,
   ScheduledRangeSummary,
+  ScheduledSnapshot,
   Settings,
   MonthlySummary,
   ID
@@ -33,7 +34,7 @@ function safeBackupOnLoad(filePath: string) {
   const backupDir = join(dataDir(), 'auto-safe-backup')
   if (!existsSync(backupDir)) mkdirSync(backupDir, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const dest = join(backupDir, `casami-${stamp}.json`)
+  const dest = join(backupDir, `expendio-${stamp}.json`)
   try {
     copyFileSync(filePath, dest)
   } catch {
@@ -42,7 +43,15 @@ function safeBackupOnLoad(filePath: string) {
 }
 
 export async function initDB(): Promise<void> {
-  dbFilePath = join(dataDir(), 'casami.json')
+  dbFilePath = join(dataDir(), 'expendio.json')
+  const legacyPath = join(dataDir(), 'casami.json')
+  if (!existsSync(dbFilePath) && existsSync(legacyPath)) {
+    try {
+      renameSync(legacyPath, dbFilePath)
+    } catch {
+      copyFileSync(legacyPath, dbFilePath)
+    }
+  }
   safeBackupOnLoad(dbFilePath)
 
   const adapter = new JSONFile<DBSchema>(dbFilePath)
@@ -592,22 +601,61 @@ export async function markScheduledUnpaid(id: ID): Promise<ScheduledExpense> {
   return next
 }
 
-export async function removeScheduled(id: ID, cascadeExpense = true): Promise<void> {
+export async function removeScheduled(
+  id: ID,
+  cascadeExpense = true
+): Promise<ScheduledSnapshot> {
   const d = getDB()
   const cur = d.data.scheduled.find((s) => s.id === id)
-  if (!cur) return
+  if (!cur) throw new Error('Scadenza non trovata')
+  const snapshotScheduled: ScheduledExpense = { ...cur }
+  let snapshotExpense: Expense | null = null
   if (cascadeExpense && cur.expenseId) {
     const eIdx = d.data.expenses.findIndex((e) => e.id === cur.expenseId)
-    if (eIdx >= 0 && d.data.expenses[eIdx].deletedAt === null) {
-      d.data.expenses[eIdx] = {
-        ...d.data.expenses[eIdx],
-        deletedAt: now(),
-        updatedAt: now()
+    if (eIdx >= 0) {
+      snapshotExpense = { ...d.data.expenses[eIdx] }
+      if (d.data.expenses[eIdx].deletedAt === null) {
+        d.data.expenses[eIdx] = {
+          ...d.data.expenses[eIdx],
+          deletedAt: now(),
+          updatedAt: now()
+        }
       }
     }
   }
   d.data.scheduled = d.data.scheduled.filter((s) => s.id !== id)
   await persist()
+  return { scheduled: snapshotScheduled, expense: snapshotExpense }
+}
+
+export async function restoreScheduled(
+  snapshot: ScheduledSnapshot
+): Promise<ScheduledExpense> {
+  const d = getDB()
+  const s = snapshot.scheduled
+  if (!s || !s.id) throw new Error('Snapshot scadenza non valido')
+  if (d.data.scheduled.some((x) => x.id === s.id)) {
+    throw new Error('Scadenza già presente')
+  }
+  d.data.scheduled.push({ ...s, updatedAt: now() })
+  if (snapshot.expense) {
+    const eIdx = d.data.expenses.findIndex((e) => e.id === snapshot.expense!.id)
+    if (eIdx >= 0) {
+      d.data.expenses[eIdx] = {
+        ...snapshot.expense,
+        deletedAt: null,
+        updatedAt: now()
+      }
+    } else {
+      d.data.expenses.push({
+        ...snapshot.expense,
+        deletedAt: null,
+        updatedAt: now()
+      })
+    }
+  }
+  await persist()
+  return d.data.scheduled.find((x) => x.id === s.id)!
 }
 
 export async function scheduledSummary(
@@ -660,7 +708,7 @@ export async function updateSettings(patch: Partial<Settings>): Promise<Settings
 export async function exportBackupFile(destPath: string): Promise<string> {
   const d = getDB()
   const payload = {
-    productName: 'Casami' as const,
+    productName: 'Expendio' as const,
     version: SCHEMA_VERSION,
     exportedAt: now(),
     data: d.data
@@ -680,7 +728,9 @@ export async function importBackup(payloadText: string): Promise<void> {
   } catch {
     throw new Error('Il file non è un backup valido.')
   }
-  if (parsed.productName !== 'Casami') throw new Error('Il file non è un backup di Casami.')
+  if (parsed.productName !== 'Expendio' && parsed.productName !== 'Casami') {
+    throw new Error('Il file non è un backup di Expendio.')
+  }
   if (!parsed.data || typeof parsed.data !== 'object') throw new Error('Dati mancanti nel backup.')
   if (!Array.isArray(parsed.data.expenses) || !Array.isArray(parsed.data.categories)) {
     throw new Error('Struttura del backup non riconosciuta.')

@@ -32,7 +32,11 @@ export function initialDB(): DBSchema {
       lastBackupAt: null,
       autoBackupWeekly: true,
       largeText: false,
-      cucciolate: 0
+      cucciolate: 0,
+      tipsState: {
+        dismissedIds: [],
+        visitedScreens: []
+      }
     }
   }
 }

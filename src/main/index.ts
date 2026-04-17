@@ -39,6 +39,7 @@ import {
   markScheduledPaid,
   markScheduledUnpaid,
   removeScheduled,
+  restoreScheduled,
   scheduledSummary,
   getSettings,
   updateSettings,
@@ -54,7 +55,7 @@ function createWindow(): BrowserWindow {
     height: 820,
     minWidth: 920,
     minHeight: 640,
-    title: 'Casami',
+    title: 'Expendio',
     backgroundColor: '#FFF8F0',
     autoHideMenuBar: true,
     webPreferences: {
@@ -190,6 +191,12 @@ function registerIpc(): void {
     )
   )
   ipcMain.handle(
+    'scheduled:restore',
+    safeHandler((snapshot: Parameters<typeof restoreScheduled>[0]) =>
+      restoreScheduled(snapshot)
+    )
+  )
+  ipcMain.handle(
     'scheduled:summary',
     safeHandler((start: string, end: string, today: string) =>
       scheduledSummary(start, end, today)
@@ -229,7 +236,7 @@ function registerIpc(): void {
       }
       if (!existsSync(targetFolder)) mkdirSync(targetFolder, { recursive: true })
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-      const filePath = join(targetFolder, `casami-backup-${stamp}.json`)
+      const filePath = join(targetFolder, `expendio-backup-${stamp}.json`)
       return await exportBackupFile(filePath)
     })
   )
@@ -239,7 +246,7 @@ function registerIpc(): void {
       const res = await dialog.showOpenDialog({
         properties: ['openFile'],
         title: 'Scegli il file di backup',
-        filters: [{ name: 'Backup Casami', extensions: ['json'] }]
+        filters: [{ name: 'Backup Expendio', extensions: ['json'] }]
       })
       if (res.canceled || res.filePaths.length === 0) return null
       const content = readFileSync(res.filePaths[0], 'utf-8')
@@ -256,7 +263,7 @@ function registerIpc(): void {
       const weekMs = 7 * 24 * 60 * 60 * 1000
       if (Date.now() - last < weekMs) return { ran: false, reason: 'recent' }
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-      const filePath = join(s.backupFolder, `casami-auto-${stamp}.json`)
+      const filePath = join(s.backupFolder, `expendio-auto-${stamp}.json`)
       try {
         await exportBackupFile(filePath)
         return { ran: true, path: filePath }

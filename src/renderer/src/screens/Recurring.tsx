@@ -105,13 +105,14 @@ export function Recurring() {
       <TopBar
         title={it.recurring.title}
         back
+        help="/ricorrenti"
         right={
           <Button onClick={openNew} size="md">
             <Plus size={18} /> {it.recurring.add}
           </Button>
         }
       />
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-3" data-tip-target="recurring-root">
         {items.length === 0 ? (
           <div className="card text-center">
             <p className="text-ink-500">Nessuna spesa ricorrente.</p>

@@ -1,6 +1,6 @@
 export const it = {
   app: {
-    name: 'Casami',
+    name: 'Expendio',
     tagline: 'Le spese di casa, semplici'
   },
   nav: {
@@ -166,7 +166,22 @@ export const it = {
     amountError: 'Inserisci un importo valido',
     nameError: 'Inserisci un nome',
     categoryError: 'Scegli una categoria',
-    dateError: 'Scegli una data'
+    dateError: 'Scegli una data',
+    quickDateLabel: 'Quando scade?',
+    quickToday: 'Oggi',
+    quickTomorrow: 'Domani',
+    quickWeek: 'Fra 7 giorni',
+    quickEndMonth: 'Fine mese',
+    quickOther: 'Altra data',
+    paidUndo: 'Segnata come pagata',
+    unpaidUndo: 'Non è più pagata',
+    deletedUndo: 'Scadenza cancellata',
+    undo: 'Annulla',
+    emptyBody: 'Aggiungi bollette, affitto e rate: qui ti ricordo quando scadono.',
+    batchPayWeek: 'Paga tutte questa settimana',
+    batchPayWeekConfirm: 'Segnare come pagate tutte le scadenze di questa settimana?',
+    batchPayWeekDone: '{count} scadenze pagate',
+    noUnpaidThisWeek: 'Niente da pagare questa settimana'
   },
   shopping: {
     title: 'Lista della spesa',
@@ -207,7 +222,7 @@ export const it = {
     autoBackupDone: 'Backup automatico eseguito'
   },
   welcome: {
-    title: 'Benvenuta in Casami',
+    title: 'Benvenuta in Expendio',
     sub: 'Un piccolo aiutante per le spese di casa, con un cagnolino che ti tiene compagnia.',
     step1: 'Tutto rimane sul tuo computer — niente internet, niente account.',
     step2: 'Aggiungi le spese in pochi tocchi e guarda dove va il tuo denaro.',
@@ -241,7 +256,7 @@ export const it = {
     downloading: 'Sto scaricando l\'aggiornamento',
     downloadingPercent: 'Scaricato {percent}%',
     ready: 'Aggiornamento pronto',
-    readyBody: 'Riavvia Casami per usare la versione {version}.',
+    readyBody: 'Riavvia Expendio per usare la versione {version}.',
     installNow: 'Riavvia e aggiorna',
     later: 'Più tardi',
     upToDate: 'Sei già aggiornata',
@@ -264,6 +279,81 @@ export const it = {
     chasing: 'Biscotto sta rincorrendo l\'ossicino',
     returning: 'Biscotto torna al suo posto',
     keyHint: 'Premi spazio per lanciare'
+  },
+  tips: {
+    helpLabel: 'Aiuto',
+    helpAria: 'Apri la guida di questa schermata',
+    dismiss: 'Ho capito',
+    dismissAria: 'Chiudi suggerimento',
+    skipTour: 'Salta la guida',
+    next: 'Avanti',
+    done: 'Fine',
+    gotIt: 'Perfetto!',
+    replayTour: 'Rivedi la guida di questa pagina',
+    homeAdd: {
+      title: 'Aggiungi la tua prima spesa',
+      body: 'Tocca questo pulsante grande ogni volta che paghi qualcosa. Bastano 10 secondi.'
+    },
+    homeNav: {
+      title: 'Qui sotto ci sono le pagine',
+      body: 'Casa, Spese, Scadenze, Riepilogo e Impostazioni. Tocca un\'icona per spostarti.'
+    },
+    addAmount: {
+      title: 'Scrivi l\'importo',
+      body: 'Digita quanto hai speso, ad esempio 12,50. Il virgola sta per i centesimi.'
+    },
+    addCategory: {
+      title: 'Scegli la categoria',
+      body: 'Tocca una delle icone colorate. Se non sai quale, c\'è sempre "Altro".'
+    },
+    addDate: {
+      title: 'Quando hai speso?',
+      body: '"Oggi" è già selezionato. Tocca "Ieri" o "Altra data" solo se serve.'
+    },
+    scheduledAdd: {
+      title: 'Segna una scadenza',
+      body: 'Qui puoi scrivere le spese che arriveranno: bollette, affitto, rate. Così non te ne dimentichi.'
+    },
+    scheduledPay: {
+      title: 'Segna come pagata',
+      body: 'Quando hai pagato, tocca il pallino verde. La spesa entra automaticamente nel riepilogo.'
+    },
+    scheduledView: {
+      title: 'Vista calendario o lista',
+      body: 'Tocca "Mese" per vedere il calendario, "Lista" per vedere tutte le scadenze in ordine.'
+    },
+    budgetIntro: {
+      title: 'Metti un tetto di spesa',
+      body: 'Se vuoi non superare una cifra per la spesa o le bollette, impostalo qui. Expendio ti avvisa.'
+    },
+    recurringIntro: {
+      title: 'Spese che tornano ogni mese',
+      body: 'Affitto, bollette, abbonamenti. Scrivile una volta e Expendio le ricorda al momento giusto.'
+    },
+    shoppingIntro: {
+      title: 'Lista della spesa',
+      body: 'Scrivi quello che ti serve prima di uscire. Spunta man mano che metti nel carrello.'
+    },
+    recapIntro: {
+      title: 'Guarda dove va il denaro',
+      body: 'Qui vedi totali, medie e confronti con il mese scorso. Utile a fine mese.'
+    },
+    settingsBackup: {
+      title: 'Fai il backup',
+      body: 'Scegli una cartella (anche una chiavetta USB) e salva i dati. Ogni settimana si aggiorna da solo.'
+    },
+    scheduledQuickDate: {
+      title: 'Scegli la data veloce',
+      body: 'Tocca "Oggi", "Domani" o "Fine mese". Se non trovi la data giusta, usa "Altra data".'
+    },
+    scheduledBatchPay: {
+      title: 'Paga tutte insieme',
+      body: 'Se hai pagato tutte le scadenze della settimana, segnale con un solo tocco.'
+    },
+    scheduledUndo: {
+      title: 'Hai 8 secondi per tornare indietro',
+      body: 'Se sbagli a segnare o cancellare, tocca "Annulla" prima che il messaggio sparisca.'
+    }
   },
   months: [
     'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',

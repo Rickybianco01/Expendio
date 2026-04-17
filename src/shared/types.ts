@@ -79,6 +79,11 @@ export interface ScheduledExpense {
   updatedAt: string
 }
 
+export interface TipsState {
+  dismissedIds: string[]
+  visitedScreens: string[]
+}
+
 export interface Settings {
   firstLaunchDone: boolean
   backupFolder: string | null
@@ -86,6 +91,7 @@ export interface Settings {
   autoBackupWeekly: boolean
   largeText: boolean
   cucciolate: number
+  tipsState: TipsState
 }
 
 export interface DBSchema {
@@ -98,6 +104,11 @@ export interface DBSchema {
   shopping: ShoppingItem[]
   scheduled: ScheduledExpense[]
   settings: Settings
+}
+
+export interface ScheduledSnapshot {
+  scheduled: ScheduledExpense
+  expense: Expense | null
 }
 
 export interface ScheduledRangeSummary {
@@ -125,7 +136,7 @@ export interface MonthlySummary {
 export interface BackupMeta {
   exportedAt: string
   version: number
-  productName: 'Casami'
+  productName: 'Expendio' | 'Casami'
 }
 
 export interface BackupPayload extends BackupMeta {

@@ -18,6 +18,7 @@ import { BackupScreen } from './screens/Backup'
 import { Welcome } from './screens/Welcome'
 import { Biscotto } from './mascot/Biscotto'
 import { UpdateBanner } from './components/UpdateBanner'
+import { TourOverlay } from './components/TourOverlay'
 
 export default function App() {
   const { ready, error, load } = useBootstrap()
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />
+      <TourOverlay />
       <UpdateBanner />
     </div>
   )

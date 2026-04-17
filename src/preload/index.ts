@@ -50,6 +50,7 @@ const api = {
     markUnpaid: (id: string) => invoke('scheduled:markUnpaid', id),
     remove: (id: string, cascadeExpense = true) =>
       invoke('scheduled:remove', id, cascadeExpense),
+    restore: (snapshot: unknown) => invoke('scheduled:restore', snapshot),
     summary: (start: string, end: string, today: string) =>
       invoke('scheduled:summary', start, end, today)
   },
@@ -81,6 +82,6 @@ const api = {
   }
 }
 
-contextBridge.exposeInMainWorld('casami', api)
+contextBridge.exposeInMainWorld('expendio', api)
 
-export type CasamiApi = typeof api
+export type ExpendioApi = typeof api

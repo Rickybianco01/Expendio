@@ -77,7 +77,7 @@ export function MonthlyRecap() {
     setExporting(true)
     setExportMsg(null)
     try {
-      const fileName = `Casami-Riepilogo-${month}.pdf`
+      const fileName = `Expendio-Riepilogo-${month}.pdf`
       const saved = await ipc.app.savePdf(fileName)
       setExportMsg(saved ? `Salvato: ${saved}` : null)
     } catch (err) {
@@ -93,13 +93,14 @@ export function MonthlyRecap() {
     <>
       <TopBar
         title={it.recap.title}
+        help="/riepilogo"
         right={
           <Button variant="secondary" size="md" onClick={exportPdf} disabled={exporting}>
             <Printer size={18} /> {it.recap.export}
           </Button>
         }
       />
-      <div className="max-w-4xl mx-auto px-4 py-4 space-y-4 print:px-0">
+      <div className="max-w-4xl mx-auto px-4 py-4 space-y-4 print:px-0" data-tip-target="recap-root">
         <div className="card flex items-center gap-3">
           <button
             onClick={() => setMonth(previousMonth(month))}

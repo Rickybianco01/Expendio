@@ -60,7 +60,7 @@ export function SettingsScreen() {
 
   return (
     <>
-      <TopBar title={it.settings.title} />
+      <TopBar title={it.settings.title} help="/impostazioni" />
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
         <div className="card flex items-center gap-4">
           <Biscotto mood="happy" size={72} />
@@ -125,7 +125,7 @@ export function SettingsScreen() {
             {it.settings.lastBackup}:{' '}
             {settings.lastBackupAt ? longDate(settings.lastBackupAt.slice(0, 10)) : it.settings.never}
           </p>
-          <Link to="/backup">
+          <Link to="/backup" data-tip-target="settings-backup">
             <Button variant="primary" size="lg" block>
               {it.settings.backup}
             </Button>

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Trash2, Check, Undo2, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { ScheduledExpense, ScheduledRangeSummary } from '@shared/types'
+import type { ScheduledExpense, ScheduledRangeSummary, ScheduledSnapshot } from '@shared/types'
 import { TopBar } from '../components/TopBar'
 import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
 import { CategoryBadge } from '../components/CategoryBadge'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { EmptyState } from '../components/EmptyState'
+import { UndoToast } from '../components/UndoToast'
 import { useScheduledStore } from '../stores/scheduledStore'
 import { useCategoryStore } from '../stores/categoryStore'
 import { formatEuro, parseAmountToCents, centsToInputString } from '../lib/format'
@@ -24,7 +25,10 @@ import {
   groupByWeek,
   weekLabel,
   daysUntil,
-  isOverdue
+  isOverdue,
+  addDaysIso,
+  weekStartIso,
+  weekEndIso
 } from '../lib/dates'
 import { ipc } from '../lib/ipc'
 import { it } from '@shared/i18n'
@@ -54,7 +58,8 @@ function dueLabel(due: string, today: string, paidOn: string | null): string {
 }
 
 export function Scheduled() {
-  const { items, reload, create, update, markPaid, markUnpaid, remove } = useScheduledStore()
+  const { items, reload, create, update, markPaid, markUnpaid, remove, restore } =
+    useScheduledStore()
   const categories = useCategoryStore((s) => s.active)()
   const byId = useCategoryStore((s) => s.byId)
 
@@ -67,6 +72,8 @@ export function Scheduled() {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [summary, setSummary] = useState<ScheduledRangeSummary | null>(null)
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [undo, setUndo] = useState<{ message: string; onUndo: () => Promise<void> } | null>(null)
+  const [confirmBatchPay, setConfirmBatchPay] = useState(false)
 
   useEffect(() => {
     reload()
@@ -109,6 +116,33 @@ export function Scheduled() {
   const grid = useMemo(() => monthMatrix(viewMonth, today), [viewMonth, today])
 
   const weekGroups = useMemo(() => groupByWeek(filtered), [filtered])
+
+  const weekUnpaid = useMemo(() => {
+    const start = weekStartIso(today)
+    const end = weekEndIso(today)
+    return items.filter((i) => !i.paidOn && i.dueDate >= start && i.dueDate <= end)
+  }, [items, today])
+
+  async function executeBatchPay() {
+    const ids = weekUnpaid.map((x) => x.id)
+    setConfirmBatchPay(false)
+    if (ids.length === 0) return
+    try {
+      await Promise.all(ids.map((id) => markPaid(id, today)))
+      setUndo({
+        message: it.scheduled.batchPayWeekDone.replace('{count}', String(ids.length)),
+        onUndo: async () => {
+          try {
+            await Promise.all(ids.map((id) => markUnpaid(id)))
+          } finally {
+            setUndo(null)
+          }
+        }
+      })
+    } catch {
+      /* noop */
+    }
+  }
 
   function openNew(dueOverride?: string) {
     const firstCat = categories[0]
@@ -176,8 +210,31 @@ export function Scheduled() {
 
   async function togglePaid(s: ScheduledExpense) {
     try {
-      if (s.paidOn) await markUnpaid(s.id)
-      else await markPaid(s.id, today)
+      if (s.paidOn) {
+        await markUnpaid(s.id)
+        setUndo({
+          message: it.scheduled.unpaidUndo,
+          onUndo: async () => {
+            try {
+              await markPaid(s.id, s.paidOn ?? today)
+            } finally {
+              setUndo(null)
+            }
+          }
+        })
+      } else {
+        await markPaid(s.id, today)
+        setUndo({
+          message: it.scheduled.paidUndo,
+          onUndo: async () => {
+            try {
+              await markUnpaid(s.id)
+            } finally {
+              setUndo(null)
+            }
+          }
+        })
+      }
     } catch {
       /* noop */
     }
@@ -186,7 +243,17 @@ export function Scheduled() {
   async function confirmRemove() {
     if (!confirmId) return
     try {
-      await remove(confirmId, true)
+      const snapshot: ScheduledSnapshot = await remove(confirmId, true)
+      setUndo({
+        message: it.scheduled.deletedUndo,
+        onUndo: async () => {
+          try {
+            await restore(snapshot)
+          } finally {
+            setUndo(null)
+          }
+        }
+      })
     } finally {
       setConfirmId(null)
     }
@@ -200,10 +267,13 @@ export function Scheduled() {
         title={it.scheduled.title}
         back
         subtitle={it.scheduled.subtitle}
+        help="/scadenziario"
         right={
-          <Button onClick={() => openNew()} size="md">
-            <Plus size={18} /> {it.scheduled.add}
-          </Button>
+          <span data-tip-target="scheduled-add">
+            <Button onClick={() => openNew()} size="md">
+              <Plus size={18} /> {it.scheduled.add}
+            </Button>
+          </span>
         }
       />
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
@@ -243,13 +313,29 @@ export function Scheduled() {
             </div>
           )}
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex gap-2" data-tip-target="scheduled-view">
             <ToggleBtn active={view === 'list'} onClick={() => setView('list')}>
               {it.scheduled.viewList}
             </ToggleBtn>
             <ToggleBtn active={view === 'month'} onClick={() => setView('month')}>
               {it.scheduled.viewMonth}
             </ToggleBtn>
+          </div>
+
+          <div className="mt-3">
+            {weekUnpaid.length > 0 ? (
+              <Button
+                variant="secondary"
+                block
+                onClick={() => setConfirmBatchPay(true)}
+              >
+                <Check size={18} /> {it.scheduled.batchPayWeek} ({weekUnpaid.length})
+              </Button>
+            ) : (
+              <p className="text-ink-500 text-sm text-center">
+                {it.scheduled.noUnpaidThisWeek}
+              </p>
+            )}
           </div>
         </div>
 
@@ -457,12 +543,42 @@ export function Scheduled() {
               />
             </div>
             <div>
-              <label className="label">{it.scheduled.dueDate}</label>
+              <label className="label">{it.scheduled.quickDateLabel}</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {[
+                  { key: 'today', label: it.scheduled.quickToday, iso: today },
+                  { key: 'tomorrow', label: it.scheduled.quickTomorrow, iso: addDaysIso(today, 1) },
+                  { key: 'week', label: it.scheduled.quickWeek, iso: addDaysIso(today, 7) },
+                  {
+                    key: 'endMonth',
+                    label: it.scheduled.quickEndMonth,
+                    iso: monthEndIso(today.slice(0, 7))
+                  }
+                ].map((p) => {
+                  const active = form.dueDate === p.iso
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => setForm({ ...form, dueDate: p.iso })}
+                      className={[
+                        'px-3 py-1.5 rounded-full font-semibold text-sm transition',
+                        active
+                          ? 'bg-terracotta-500 text-cream-50'
+                          : 'bg-cream-100 text-ink-700 hover:bg-cream-200'
+                      ].join(' ')}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
+              </div>
               <input
                 type="date"
                 className="input"
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                aria-label={it.scheduled.quickOther}
               />
             </div>
             <div>
@@ -488,6 +604,24 @@ export function Scheduled() {
         onConfirm={confirmRemove}
         onCancel={() => setConfirmId(null)}
       />
+
+      <ConfirmDialog
+        open={confirmBatchPay}
+        title={it.scheduled.batchPayWeek}
+        body={it.scheduled.batchPayWeekConfirm}
+        confirmLabel={it.common.confirm}
+        cancelLabel={it.common.cancel}
+        onConfirm={executeBatchPay}
+        onCancel={() => setConfirmBatchPay(false)}
+      />
+
+      {undo && (
+        <UndoToast
+          message={undo.message}
+          onUndo={undo.onUndo}
+          onDismiss={() => setUndo(null)}
+        />
+      )}
     </>
   )
 }
@@ -614,6 +748,7 @@ function ScheduledRow({
       <span className="font-bold whitespace-nowrap">{formatEuro(item.amountCents)}</span>
       <button
         onClick={onToggle}
+        data-tip-target="scheduled-pay"
         className={[
           'p-2 rounded-lg transition',
           paid

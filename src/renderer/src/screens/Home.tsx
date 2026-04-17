@@ -124,9 +124,11 @@ export function Home() {
         </div>
       </div>
 
-      <Button onClick={openAdd} size="xl" block>
-        <Plus size={28} /> {it.home.addExpense}
-      </Button>
+      <div data-tip-target="home-add">
+        <Button onClick={openAdd} size="xl" block>
+          <Plus size={28} /> {it.home.addExpense}
+        </Button>
+      </div>
 
       <div className="card">
         <div className="flex items-center justify-between">

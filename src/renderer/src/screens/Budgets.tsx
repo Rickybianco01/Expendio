@@ -69,13 +69,14 @@ export function Budgets() {
         title={it.budgets.title}
         back
         subtitle={monthLabel(month)}
+        help="/budget"
         right={
           <Button onClick={openNew} size="md">
             <Plus size={18} /> {it.budgets.save}
           </Button>
         }
       />
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-3" data-tip-target="budget-root">
         <p className="text-ink-500 px-2">{it.budgets.description}</p>
         {active.length === 0 ? (
           <div className="card text-center">

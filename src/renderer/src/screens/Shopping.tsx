@@ -29,6 +29,7 @@ export function Shopping() {
       <TopBar
         title={it.shopping.title}
         back
+        help="/lista-spesa"
         right={
           done.length > 0 ? (
             <Button variant="secondary" size="md" onClick={clearDone}>
@@ -37,7 +38,7 @@ export function Shopping() {
           ) : undefined
         }
       />
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4" data-tip-target="shopping-root">
         <form onSubmit={handleAdd} className="card flex gap-2 items-center">
           <input
             className="input flex-1"

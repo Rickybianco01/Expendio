@@ -1,9 +1,9 @@
 {
-  "name": "casami",
+  "name": "expendio",
   "version": "0.2.0",
   "description": "Gestione spese di casa per mamma — tutto locale, tema cani",
   "main": "out/main/index.js",
-  "author": "Casami",
+  "author": "Expendio",
   "license": "UNLICENSED",
   "private": true,
   "type": "module",
@@ -46,8 +46,8 @@
     "vite": "^5.4.11"
   },
   "build": {
-    "appId": "com.casami.app",
-    "productName": "Casami",
+    "appId": "com.expendio.app",
+    "productName": "Expendio",
     "directories": {
       "output": "release"
     },
@@ -74,13 +74,13 @@
       ],
       "language": "1040",
       "createDesktopShortcut": true,
-      "shortcutName": "Casami"
+      "shortcutName": "Expendio"
     },
     "publish": [
       {
         "provider": "github",
         "owner": "Rickybianco01",
-        "repo": "Casami",
+        "repo": "Expendio",
         "releaseType": "release"
       }
     ]
